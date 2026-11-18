@@ -12,13 +12,13 @@ Pemrograman Mobile 2026
 - Satu orang = satu branch baru (feature/network, feature/ui-integration, feature/audio-hint). Diserahkan lewat merge/pull request
 - Semua anggota wajib paham semua tahap. Di akhir tiap tahap, pemilik tahap sebelumnya wajib menjelaskan apa saja yang sudah dikerjakan dan hasilnya ke rekan selanjutnya, pun begitu bagi rekan selanjutnya juga memberikan progress dan hasilnya ke rekan sebelumnya.
 
-##PLAN PENGERJAAN
+## PLAN PENGERJAAN
 - Tahap 1 - Belajar dan persiapan
 - Tahap 2 - Bagian 1 selesai, membuat materi pembelajaran
 - Tahap 3 - Bagian 2 selesai, mengupdate materi pembelajaran
 - Tahap 4 - Bagian 3 selesai, dan finalisasi materi pembelajaran
 
-#PRE-REQUISITES
+## PRE-REQUISITES
 1. Android Studio versi terbaru
 2. GitHub dengan repo hasil fork (menggunakan GitHub Jeremy)
 3. PDF Guidebook pengerjaan yang sudah dibuat oleh Jeremy (digunakan sebagai panduan pengerjaan, dan checklist pengujian aplikasi)
