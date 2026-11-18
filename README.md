@@ -1,7 +1,5 @@
-# mobileprogramming2026
+# mobileprogramming2026 - REST API
 Pemrograman Mobile 2026
-
-# RESTAPI
 Sumber : Free Dictonary API
 
 ## Fitur yang akan dibuat
