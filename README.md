@@ -1,6 +1,13 @@
 # mobileprogramming2026
 Pemrograman Mobile 2026
 
+## Fitur yang akan dibuat
+1. Definisi kata : arti kata ditampilkan ketika penjelasan setelah pemain selesai menjawab
+2. Hint : kalimat contoh untuk membantu pemain
+3. Audio pelafalan : tombol play untuk memutar pelafalan kata
+4. Loading state : indikator saat data sedang diambil (get)
+5. Error handling : pesan jelas bila gagal, tapi aplikasi tetap harus berjalan
+
 
 | Nama | Tanggung Jawab | Menerima dari | Menyerahkan | Bagian yang dipresentasikan
 |---|---|---|---|---|
