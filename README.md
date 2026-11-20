@@ -12,9 +12,9 @@ Sumber : Free Dictonary API
 ## Pembagian tugas
 | Nama | Tanggung Jawab | Menerima dari | Menyerahkan | Bagian yang dipresentasikan
 |---|---|---|---|---|
-|Jeremy| Dependancy, permission, model JSON, ApiService, Repository, penanganan error di level data, cache | Kode game hasil fork | Repository yang bisa dipanggil dengan satu fungsi + bukti jalan di Logcat | Bagian 1 (Konsep, dan lapisan jaringan) |
-|Alvin| ViewModel + UIState, layout panel penjelasan, loading dan error UI, integrasi ke alur game (jawab, timeout, next), pembatalan request | Repository dari bagian Jeremy | Fitur definisi tampil di game, dengan loading dan error | Bagian 2 (arsitektur dan alur UI) |
-|Alfa| Audio pelafalan (media player), hint contoh kalimat (kata disamarkan), pengujian skenario, perbaikan bug, dokumentasi demo | Fitur terintegrasi dari bagian Alvin | Final fitur teruji + materi demo | Bagian 3 (demo, audio/hint, hasil uji) |
+|Jeremy| Dependancy, permission, model JSON, ApiService, Repository, penanganan error di level data, cache, crosscheck .txt ke API, kelompokkan per jenis kata, CreditActivity | Kode game hasil fork | Repository yang bisa dipanggil dengan satu fungsi + bukti jalan di Logcat | Bagian 1 (Konsep, dan lapisan jaringan) |
+|Alvin| UIState, layout panel penjelasan, loading dan error UI, integrasi ke alur game (jawab, timeout, next), pembatalan request, pengambilan acak 15 soal, mengganti level, panel definisi, mode offline (cadangan .txt) | Repository dari bagian Jeremy | Fitur definisi tampil di game, dengan loading dan error | Bagian 2 (arsitektur dan alur UI) |
+|Alfa| HintMananger dan SharedPreferences, tombol hint, audio pelafalan (media player), hint contoh kalimat (kata disamarkan), pengujian skenario, perbaikan bug, dokumentasi demo | Fitur terintegrasi dari bagian Alvin | Final fitur teruji + materi demo | Bagian 3 (demo, audio/hint, hasil uji) |
 
 **RULES PENGERJAAN**
 - Satu orang = satu branch baru (feature/network, feature/ui-integration, feature/audio-hint). Diserahkan lewat merge/pull request
