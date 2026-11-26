@@ -29,7 +29,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
+
+import retrofit2.Call;
+import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -64,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String KEY_LEVEL = "level";
 
     private final Handler handler = new Handler(Looper.getMainLooper());
+    private QuestionPool pembentukSoal;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -138,7 +144,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-
+        tesApi();
+        tesPembentukSoal();
         letsPlay();
     }
 
@@ -292,6 +299,60 @@ public class MainActivity extends AppCompatActivity {
         textHasil.setText("Waktu habis. Jawaban benar: " + kamus.get(soal));
     }
 
+    //DIHAPUS KETIKA LANJUT KE TAHAP B, HANYA UNTUK UJI APAKAH CODE TAHAP A BERHASIL
+    //Hasil : seluruh code tahap A berhasil, berhasil memanggil API beserta requestnya, dan berhasil mendapat responses
+    //Hasil : crosscheck soal .txt ke API sudah berhasil, dengan mekanisme diambil secara acak tiap run, sebanyak 40 kata
+    //Hasil : pembentuk soal sudah berhasil, tinggal pembuatan layout/pemanggilan id soal di layout nya saja untuk menampilkan soalnya
+    private void tesApi() {
+        ApiClient.getApi().getWord("hello").enqueue(new retrofit2.Callback<List<WordEntry>>() {
+            @Override
+            public void onResponse(Call<List<WordEntry>> call, Response<List<WordEntry>> response) {
+                Log.d("TES_API", "Kode status: " + response.code());
+                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                    WordEntry entry = response.body().get(0);
+                    Log.d("TES_API", "Kata: " + entry.word);
+                    Log.d("TES_API", "Fonetik: " + entry.phonetic);
+                    if (entry.meanings != null && !entry.meanings.isEmpty()
+                            && entry.meanings.get(0).definitions != null
+                            && !entry.meanings.get(0).definitions.isEmpty()) {
+                        Log.d("TES_API", "Definisi: "
+                                + entry.meanings.get(0).definitions.get(0).definition);
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<WordEntry>> call, Throwable t) {
+                Log.e("TES_API", "Gagal: " + t.getMessage());
+            }
+        });
+    }
+    private void tesPembentukSoal() {
+        List<String> kandidat = new ArrayList<>();
+        kandidat.addAll(kataEasy);
+        kandidat.addAll(kataMedium);
+        kandidat.addAll(kataDifficult);
+        Collections.shuffle(kandidat);
+        List<String> terpilih = new ArrayList<>(kandidat.subList(0, Math.min(40, kandidat.size())));
+
+        pembentukSoal = new QuestionPool();
+        pembentukSoal.build(terpilih, new QuestionPool.Listener() {
+            @Override
+            public void onProgress(int ke, int total) {
+                Log.d("TES_KELOMPOK", "Progres " + ke + "/" + total);
+            }
+
+            @Override
+            public void onSelesai(boolean berhasil, List<WordEntry> valid) {
+                Log.d("TES_KELOMPOK", "berhasil=" + berhasil + ", entry valid=" + valid.size());
+                Map<String, List<QuestionWord>> kelompok = WordGrouper.kelompokkan(valid);
+                for (Map.Entry<String, List<QuestionWord>> e : kelompok.entrySet()) {
+                    Log.d("TES_KELOMPOK", e.getKey() + ": " + e.getValue().size() + " kata");
+                }
+            }
+        });
+    }
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -329,6 +390,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (pembentukSoal != null) pembentukSoal.batal();
         Log.d(TAG_LC, "onDestroy, isFinishing=" + isFinishing()
                 + ", isChangingConfigurations=" + isChangingConfigurations());
     }
