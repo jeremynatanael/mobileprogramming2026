@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String KEY_SISA_MS = "sisa_ms";
     private static final String KEY_LEVEL = "level";
 
-    // Poin 10: Simpan hasil persiapan soal di field static agar putar layar tidak mengulang 40 request
+    // Simpan hasil persiapan soal di field static agar putar layar tidak mengulang request
     private static Map<String, List<QuestionWord>> cacheKelompokOnline = null;
     private static Boolean cacheModeOffline = null;
 
@@ -113,7 +113,6 @@ public class MainActivity extends AppCompatActivity {
         });
         rvOpsi.setAdapter(adapter);
 
-        // Poin 11: Tombol Next tidak perlu membatalkan request karena tidak ada request per soal
         tombolBerikutnya.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -121,7 +120,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Poin 8: Tombol "Coba online lagi" memanggil siapkanSoal() lagi
         btnCobaOnline.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -159,7 +157,6 @@ public class MainActivity extends AppCompatActivity {
             updateSkor();
         }
 
-        // Poin 1 & 10: Cek cache static saat rotasi; jika belum ada, panggil siapkanSoal()
         if (cacheModeOffline != null) {
             if (!cacheModeOffline && cacheKelompokOnline != null && !cacheKelompokOnline.isEmpty()) {
                 masukModeOnline(savedInstanceState != null);
@@ -171,12 +168,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // Poin 1, 2, 3: Panggil pembentuk soal saat game dibuka dengan layar loading
+    // Disesuaikan dengan QuestionPool terbaru milik Jeremy
     private void siapkanSoal() {
         hentikanTimer();
         if (pembentukSoal != null) pembentukSoal.batal();
 
-        // Poin 2 + Revisi: Sembunyikan skor, waktu, dan seluruh tampilan game selama loading
         textSkor.setVisibility(View.GONE);
         textWaktu.setVisibility(View.GONE);
         layoutOfflineBanner.setVisibility(View.GONE);
@@ -184,25 +180,29 @@ public class MainActivity extends AppCompatActivity {
         radioGroupLevel.setVisibility(View.GONE);
         tombolBerikutnya.setVisibility(View.GONE);
         layoutLoadingAwal.setVisibility(View.VISIBLE);
-        textLoadingProgres.setText("Menyiapkan soal 0/40");
+        textLoadingProgres.setText("Menyiapkan soal...\nNoun: 0/15 | Verb: 0/15 | Adj: 0/15");
 
         List<String> kandidat = new ArrayList<>();
         kandidat.addAll(kataEasy);
         kandidat.addAll(kataMedium);
         kandidat.addAll(kataDifficult);
         Collections.shuffle(kandidat);
-        List<String> terpilih = new ArrayList<>(kandidat.subList(0, Math.min(40, kandidat.size())));
 
         pembentukSoal = new QuestionPool();
-        pembentukSoal.build(terpilih, new QuestionPool.Listener() {
+        pembentukSoal.build(kandidat, new QuestionPool.Listener() {
             @Override
-            public void onProgress(int ke, int total) {
-                textLoadingProgres.setText("Menyiapkan soal " + ke + "/" + total);
+            public void onProgress(Map<String, Integer> jumlahPerJenis) {
+                int n = jumlahPerJenis.getOrDefault("noun", 0);
+                int v = jumlahPerJenis.getOrDefault("verb", 0);
+                int a = jumlahPerJenis.getOrDefault("adjective", 0);
+                int target = QuestionPool.TARGET_PER_KELOMPOK;
+                textLoadingProgres.setText("Menyiapkan soal...\nNoun: " + n + "/" + target
+                        + " | Verb: " + v + "/" + target
+                        + " | Adj: " + a + "/" + target);
             }
 
             @Override
-            public void onSelesai(boolean berhasil, List<WordEntry> valid) {
-                // Poin 2 + Revisi: Tampilkan kembali skor, waktu, dan tampilan game setelah onSelesai
+            public void onSelesai(boolean berhasil, Map<String, List<QuestionWord>> kelompok, int jumlahRequest) {
                 layoutLoadingAwal.setVisibility(View.GONE);
                 textSkor.setVisibility(View.VISIBLE);
                 textWaktu.setVisibility(View.VISIBLE);
@@ -210,10 +210,18 @@ public class MainActivity extends AppCompatActivity {
                 radioGroupLevel.setVisibility(View.VISIBLE);
                 tombolBerikutnya.setVisibility(View.VISIBLE);
 
-                // Poin 3: Menentukan mode online atau offline
-                Map<String, List<QuestionWord>> kelompok = WordGrouper.kelompokkan(valid);
-                if (berhasil && !kelompok.isEmpty()) {
-                    cacheKelompokOnline = kelompok;
+                // Bersihkan kelompok yang kosong (< 5 kata atau 0 kata)
+                Map<String, List<QuestionWord>> kelompokValid = new HashMap<>();
+                if (kelompok != null) {
+                    for (Map.Entry<String, List<QuestionWord>> entry : kelompok.entrySet()) {
+                        if (entry.getValue() != null && entry.getValue().size() >= 5) {
+                            kelompokValid.put(entry.getKey(), entry.getValue());
+                        }
+                    }
+                }
+
+                if (berhasil && !kelompokValid.isEmpty()) {
+                    cacheKelompokOnline = kelompokValid;
                     cacheModeOffline = false;
                     masukModeOnline(false);
                 } else {
@@ -235,7 +243,6 @@ public class MainActivity extends AppCompatActivity {
         radioGroupLevel.setVisibility(View.VISIBLE);
         tombolBerikutnya.setVisibility(View.VISIBLE);
 
-        // Poin 4: Ubah teks radio ke Noun / Verb / Adjective & sembunyikan yang tidak ada kelompoknya
         radioEasy.setText("Noun");
         radioEasy.setVisibility(cacheKelompokOnline.containsKey("noun") ? View.VISIBLE : View.GONE);
 
@@ -259,7 +266,6 @@ public class MainActivity extends AppCompatActivity {
         mulaiSesiBaru();
     }
 
-    // Poin 8: Mode offline mengembalikan radio ke Easy / Medium / Difficult dan memakai .txt
     private void masukModeOffline(String pesan, boolean dariRotasi) {
         modeOffline = true;
         layoutLoadingAwal.setVisibility(View.GONE);
@@ -288,7 +294,6 @@ public class MainActivity extends AppCompatActivity {
         mulaiSesiBaru();
     }
 
-    // Poin 5: Mengisi kata dan kamus dari kelompok yang dipilih sehingga letsPlay() hampir tidak berubah
     private void pilihLevel(int checkedId) {
         if (modeOffline) {
             if (checkedId == R.id.radioEasy) {
@@ -320,11 +325,9 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        // Poin 6: Atur JUMLAH_SOAL = Math.min(15, kata.size())
         JUMLAH_SOAL = Math.min(15, kata.size());
     }
 
-    // Poin 9: Perbarui kodeLevel() agar RingkasanHasil menampilkan jenis kata di mode online & level di mode offline
     private String kodeLevel() {
         int id = radioGroupLevel.getCheckedRadioButtonId();
         if (modeOffline) {
@@ -358,7 +361,6 @@ public class MainActivity extends AppCompatActivity {
         mulaiSesiBaru();
     }
 
-    // Poin 5 & 6: Kondisi diperbaiki menjadi soalKe < JUMLAH_SOAL dan logika inti tetap sama
     private void letsPlay() {
         if (soalKe < JUMLAH_SOAL) {
             sudahDijawab = false;
@@ -416,7 +418,6 @@ public class MainActivity extends AppCompatActivity {
         tampilkanPanelPenjelasan();
     }
 
-    // Poin 7 & 8: Tampilkan kata, jenis kata, dan contoh kalimat di mode online; sembunyikan di mode offline
     private void tampilkanPanelPenjelasan() {
         if (modeOffline) {
             panelPenjelasan.setVisibility(View.GONE);
@@ -437,7 +438,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // Helper untuk Orang C (Alfa) mengambil QuestionWord soal yang sedang berjalan
     public QuestionWord getQuestionWordSaatIni() {
         return infoSoalOnline.get(soal);
     }
@@ -485,65 +485,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void waktuHabis() {
-        skorSalah++;
-        updateSkor();
-        adapter.tandaiWaktuHabis();
-        textHasil.setText("Waktu habis. Jawaban benar: " + kamus.get(soal));
-    }
-
-    //DIHAPUS KETIKA LANJUT KE TAHAP B, HANYA UNTUK UJI APAKAH CODE TAHAP A BERHASIL
-    //Hasil : seluruh code tahap A berhasil, berhasil memanggil API beserta requestnya, dan berhasil mendapat responses
-    //Hasil : crosscheck soal .txt ke API sudah berhasil, dengan mekanisme diambil secara acak tiap run, sebanyak 40 kata
-    //Hasil : pembentuk soal sudah berhasil, tinggal pembuatan layout/pemanggilan id soal di layout nya saja untuk menampilkan soalnya
-    private void tesApi() {
-        ApiClient.getApi().getWord("hello").enqueue(new retrofit2.Callback<List<WordEntry>>() {
-            @Override
-            public void onResponse(Call<List<WordEntry>> call, Response<List<WordEntry>> response) {
-                Log.d("TES_API", "Kode status: " + response.code());
-                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
-                    WordEntry entry = response.body().get(0);
-                    Log.d("TES_API", "Kata: " + entry.word);
-                    Log.d("TES_API", "Fonetik: " + entry.phonetic);
-                    if (entry.meanings != null && !entry.meanings.isEmpty()
-                            && entry.meanings.get(0).definitions != null
-                            && !entry.meanings.get(0).definitions.isEmpty()) {
-                        Log.d("TES_API", "Definisi: "
-                                + entry.meanings.get(0).definitions.get(0).definition);
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<WordEntry>> call, Throwable t) {
-                Log.e("TES_API", "Gagal: " + t.getMessage());
-            }
-        });
-    }
-    private void tesPembentukSoal() {
-        List<String> kandidat = new ArrayList<>();
-        kandidat.addAll(kataEasy);
-        kandidat.addAll(kataMedium);
-        kandidat.addAll(kataDifficult);
-        Collections.shuffle(kandidat);
-
-        pembentukSoal = new QuestionPool();
-        pembentukSoal.build(kandidat, new QuestionPool.Listener() {
-            @Override
-            public void onProgress(Map<String, Integer> jumlah) {
-                Log.d("TES_KELOMPOK", "Progres " + jumlah);
-            }
-
-            @Override
-            public void onSelesai(boolean berhasil, Map<String, List<QuestionWord>> kelompok, int jumlahRequest) {
-                Log.d("TES_KELOMPOK", "berhasil=" + berhasil + ", request=" + jumlahRequest);
-                for (Map.Entry<String, List<QuestionWord>> e : kelompok.entrySet()) {
-                    Log.d("TES_KELOMPOK", e.getKey() + ": " + e.getValue().size() + " kata");
-                }
-            }
-        });
-    }
-
     @Override
     protected void onStart() {
         super.onStart();
@@ -570,7 +511,6 @@ public class MainActivity extends AppCompatActivity {
         hentikanTimer();
     }
 
-    // Poin 11: Panggil pembentukSoal.batal() di onDestroy()
     @Override
     protected void onDestroy() {
         super.onDestroy();
