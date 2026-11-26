@@ -485,6 +485,77 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void waktuHabis() {
+        skorSalah++;
+        updateSkor();
+        adapter.tandaiWaktuHabis();
+        textHasil.setText("Waktu habis. Jawaban benar: " + kamus.get(soal));
+    }
+
+    //DIHAPUS KETIKA LANJUT KE TAHAP B, HANYA UNTUK UJI APAKAH CODE TAHAP A BERHASIL
+    //Hasil : seluruh code tahap A berhasil, berhasil memanggil API beserta requestnya, dan berhasil mendapat responses
+    //Hasil : crosscheck soal .txt ke API sudah berhasil, dengan mekanisme diambil secara acak tiap run, sebanyak 40 kata
+    //Hasil : pembentuk soal sudah berhasil, tinggal pembuatan layout/pemanggilan id soal di layout nya saja untuk menampilkan soalnya
+    private void tesApi() {
+        ApiClient.getApi().getWord("hello").enqueue(new retrofit2.Callback<List<WordEntry>>() {
+            @Override
+            public void onResponse(Call<List<WordEntry>> call, Response<List<WordEntry>> response) {
+                Log.d("TES_API", "Kode status: " + response.code());
+                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                    WordEntry entry = response.body().get(0);
+                    Log.d("TES_API", "Kata: " + entry.word);
+                    Log.d("TES_API", "Fonetik: " + entry.phonetic);
+                    if (entry.meanings != null && !entry.meanings.isEmpty()
+                            && entry.meanings.get(0).definitions != null
+                            && !entry.meanings.get(0).definitions.isEmpty()) {
+                        Log.d("TES_API", "Definisi: "
+                                + entry.meanings.get(0).definitions.get(0).definition);
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<WordEntry>> call, Throwable t) {
+                Log.e("TES_API", "Gagal: " + t.getMessage());
+            }
+        });
+    }
+    private void tesPembentukSoal() {
+        List<String> kandidat = new ArrayList<>();
+        kandidat.addAll(kataEasy);
+        kandidat.addAll(kataMedium);
+        kandidat.addAll(kataDifficult);
+        Collections.shuffle(kandidat);
+
+        pembentukSoal = new QuestionPool();
+        pembentukSoal.build(kandidat, new QuestionPool.Listener() {
+            @Override
+            public void onProgress(Map<String, Integer> jumlah) {
+                Log.d("TES_KELOMPOK", "Progres " + jumlah);
+            }
+
+            @Override
+            public void onSelesai(boolean berhasil, Map<String, List<QuestionWord>> kelompok, int jumlahRequest) {
+                Log.d("TES_KELOMPOK", "berhasil=" + berhasil + ", request=" + jumlahRequest);
+                for (Map.Entry<String, List<QuestionWord>> e : kelompok.entrySet()) {
+                    Log.d("TES_KELOMPOK", e.getKey() + ": " + e.getValue().size() + " kata");
+                }
+            }
+        });
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.d(TAG_LC, "onStart");
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        Log.d(TAG_LC, "onRestart");
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
