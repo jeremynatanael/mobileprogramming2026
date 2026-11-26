@@ -12,40 +12,38 @@ public class WordGrouper {
     public static final int MIN_PER_KELOMPOK = 5;
     private static final String[] JENIS_DIPAKAI = {"noun", "verb", "adjective"};
 
-    public static final Map<String, List<QuestionWord>> kelompokkan(List<WordEntry> entries) {
-        Map<String, List<QuestionWord>> hasil = new LinkedHashMap<>();
-        for (String jenis : JENIS_DIPAKAI) {
-            hasil.put(jenis, new ArrayList<>());
-        }
-        Set<String> sudahAda = new HashSet<>(); //kunci = kata + jenis
+    public static Map<String, List<QuestionWord>> buatKosong() {
+        Map<String, List<QuestionWord>> kelompok = new LinkedHashMap<>();
+        for (String j : JENIS_DIPAKAI) kelompok.put(j, new ArrayList<>());
+        return kelompok;
+    }
 
-        for (WordEntry entry : entries) {
-            if (entry.word == null || entry.meanings == null) continue;
-            String audio = cariAudio(entry);
+    public static void tambah(WordEntry entry, Map<String, List<QuestionWord>> kelompok, Set<String> sudahAda, int target) {
+        if (entry.word == null || entry.meanings == null) return;
+        String audio = cariAudio(entry);
 
-            for (Meaning m : entry.meanings) {
-                if (m.partOfSpeech == null) continue;
-                String jenis = m.partOfSpeech.toLowerCase();
-                List<QuestionWord> kelompok = hasil.get(jenis);
-                if (kelompok == null) continue; //jenis lain diabaikan
+        for (Meaning m : entry.meanings) {
+            if (m.partOfSpeech == null) continue;
+            String jenis = m.partOfSpeech.toLowerCase();
+            List<QuestionWord> daftar = kelompok.get(jenis);
+            if (daftar == null || daftar.size() >= target) continue; //jenis lain diabaikan
 
-                String kunci = entry.word.toLowerCase() + " | " + jenis;
-                if (sudahAda.contains(kunci)) continue; //hindari duplikat
+            String kunci = entry.word.toLowerCase() + " | " + jenis;
+            if (sudahAda.contains(kunci)) continue; //hindari duplikat
 
-                QuestionWord q = buatSoal(entry.word, jenis, audio, m);
-                if (q != null) {
-                    kelompok.add(q);
-                    sudahAda.add(kunci);
-                }
+            QuestionWord q = buatSoal(entry.word, jenis, audio, m);
+            if (q != null) {
+                daftar.add(q);
+                sudahAda.add(kunci);
             }
         }
+    }
 
-        //buang kelompok yang jumlahnya terlalu sedikit
-        Iterator<Map.Entry<String, List<QuestionWord>>> it = hasil.entrySet().iterator();
-        while (it.hasNext()) {
-            if (it.next().getValue().size() < MIN_PER_KELOMPOK) it.remove();
+    public static boolean semuaPenuh(Map<String, List<QuestionWord>> kelompok, int target) {
+        for (List<QuestionWord> daftar : kelompok.values()) {
+            if (daftar.size() < target) return false;
         }
-        return hasil;
+        return true;
     }
 
     private static QuestionWord buatSoal(String word, String jenis, String audio, Meaning m) {
