@@ -211,17 +211,24 @@ public class MainActivity extends AppCompatActivity {
                 tombolBerikutnya.setVisibility(View.VISIBLE);
 
                 // Bersihkan kelompok yang kosong (< 5 kata atau 0 kata)
-                Map<String, List<QuestionWord>> kelompokValid = new HashMap<>();
+                //Map<String, List<QuestionWord>> kelompokValid = new HashMap<>();
+                //if (kelompok != null) {
+                    //for (Map.Entry<String, List<QuestionWord>> entry : kelompok.entrySet()) {
+                        //if (entry.getValue() != null && entry.getValue().size() >= 5) {
+                            //kelompokValid.put(entry.getKey(), entry.getValue());
+                        //}
+                    //}
+                //}
+
                 if (kelompok != null) {
-                    for (Map.Entry<String, List<QuestionWord>> entry : kelompok.entrySet()) {
-                        if (entry.getValue() != null && entry.getValue().size() >= 5) {
-                            kelompokValid.put(entry.getKey(), entry.getValue());
-                        }
+                    for (Map.Entry<String, List<QuestionWord>> e : kelompok.entrySet()) {
+                        Log.d("TES_KELOMPOK", e.getKey() + ": " + e.getValue().size() + " kata (request=" + jumlahRequest + ")");
+                        Log.d("TES_KELOMPOK", "berhasil: " + berhasil + ", request:" + jumlahRequest);
                     }
                 }
 
-                if (berhasil && !kelompokValid.isEmpty()) {
-                    cacheKelompokOnline = kelompokValid;
+                if (berhasil && kelompok != null) {
+                    cacheKelompokOnline = kelompok;
                     cacheModeOffline = false;
                     masukModeOnline(false);
                 } else {
@@ -244,22 +251,16 @@ public class MainActivity extends AppCompatActivity {
         tombolBerikutnya.setVisibility(View.VISIBLE);
 
         radioEasy.setText("Noun");
-        radioEasy.setVisibility(cacheKelompokOnline.containsKey("noun") ? View.VISIBLE : View.GONE);
+        radioEasy.setVisibility(View.VISIBLE);
 
         radioMedium.setText("Verb");
-        radioMedium.setVisibility(cacheKelompokOnline.containsKey("verb") ? View.VISIBLE : View.GONE);
+        radioMedium.setVisibility(View.VISIBLE);
 
         radioDifficult.setText("Adjective");
-        radioDifficult.setVisibility(cacheKelompokOnline.containsKey("adjective") ? View.VISIBLE : View.GONE);
+        radioDifficult.setVisibility(View.VISIBLE);
 
         if (!dariRotasi) {
-            if (cacheKelompokOnline.containsKey("noun")) {
-                radioEasy.setChecked(true);
-            } else if (cacheKelompokOnline.containsKey("verb")) {
-                radioMedium.setChecked(true);
-            } else if (cacheKelompokOnline.containsKey("adjective")) {
-                radioDifficult.setChecked(true);
-            }
+            radioEasy.setChecked(true);
         }
 
         pilihLevel(radioGroupLevel.getCheckedRadioButtonId());
@@ -389,6 +390,14 @@ public class MainActivity extends AppCompatActivity {
             mulaiTimer(sisaMs);
         } else {
             selesaiSesi();
+        }
+
+        if (kata == null || kata.isEmpty()) {
+            hentikanTimer();
+            textSoal.setText("-");
+            textHasil.setText("Kategori ini belum punya kata. Pilih kategori lain");
+            adapter.setOpsi(new ArrayList<>(), -1);
+            return;
         }
     }
 

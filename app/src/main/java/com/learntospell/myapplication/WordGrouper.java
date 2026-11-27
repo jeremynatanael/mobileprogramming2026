@@ -2,14 +2,12 @@ package com.learntospell.myapplication;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class WordGrouper {
-    public static final int MIN_PER_KELOMPOK = 5;
     private static final String[] JENIS_DIPAKAI = {"noun", "verb", "adjective"};
 
     public static Map<String, List<QuestionWord>> buatKosong() {
@@ -59,7 +57,6 @@ public class WordGrouper {
             }
         }
         if (definisi == null) return null;
-        if (contoh == null && sinonim == null) return null; //tanpa hint, dibuang
         return new QuestionWord(word, jenis, definisi, contoh, sinonim, audio);
     }
 
