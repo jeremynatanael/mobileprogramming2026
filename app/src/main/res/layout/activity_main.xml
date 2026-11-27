@@ -64,7 +64,7 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:orientation="horizontal"
-        app:layout_constraintTop_toBottomOf="@+id/waktu"
+        app:layout_constraintTop_toBottomOf="@+id/layoutOfflineBanner"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
