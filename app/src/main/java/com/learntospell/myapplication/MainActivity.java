@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
     private Button tombolBerikutnya;
 
     // UI Loading, Offline, dan Panel Penjelasan
-    private LinearLayout layoutOfflineBanner, layoutLoadingAwal, panelPenjelasan;
+    private LinearLayout layoutOfflineBanner, panelPenjelasan;
     private ConstraintLayout layoutGame;
     private TextView textOfflineInfo, textLoadingProgres, textPenjelasanKata, textContoh;
     private Button btnCobaOnline;
@@ -66,12 +66,9 @@ public class MainActivity extends AppCompatActivity {
     private static final String KEY_OPSI = "opsi";
     private static final String KEY_SISA_MS = "sisa_ms";
     private static final String KEY_LEVEL = "level";
+    private boolean modeOffline = false;
 
     // Simpan hasil persiapan soal di field static agar putar layar tidak mengulang request
-    private static Map<String, List<QuestionWord>> cacheKelompokOnline = null;
-    private static Boolean cacheModeOffline = null;
-
-    private boolean modeOffline = false;
     private QuestionPool pembentukSoal;
 
     @Override
@@ -94,8 +91,6 @@ public class MainActivity extends AppCompatActivity {
         layoutOfflineBanner = findViewById(R.id.layoutOfflineBanner);
         textOfflineInfo = findViewById(R.id.textOfflineInfo);
         btnCobaOnline = findViewById(R.id.btnCobaOnline);
-        layoutLoadingAwal = findViewById(R.id.layoutLoadingAwal);
-        textLoadingProgres = findViewById(R.id.textLoadingProgres);
         layoutGame = findViewById(R.id.layoutGame);
 
         panelPenjelasan = findViewById(R.id.panelPenjelasan);
@@ -123,9 +118,10 @@ public class MainActivity extends AppCompatActivity {
         btnCobaOnline.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                cacheKelompokOnline = null;
-                cacheModeOffline = null;
-                siapkanSoal();
+                LoadingActivity.cacheKelompokOnline = null;
+                LoadingActivity.cacheModeOffline = false;
+                startActivity(new Intent(MainActivity.this, LoadingActivity.class));
+                finish();
             }
         });
 
@@ -157,92 +153,20 @@ public class MainActivity extends AppCompatActivity {
             updateSkor();
         }
 
-        if (cacheModeOffline != null) {
-            if (!cacheModeOffline && cacheKelompokOnline != null && !cacheKelompokOnline.isEmpty()) {
-                masukModeOnline(savedInstanceState != null);
-            } else {
-                masukModeOffline("Mode offline: memakai data bawaan.", savedInstanceState != null);
-            }
+        if (!LoadingActivity.cacheModeOffline
+                && LoadingActivity.cacheKelompokOnline != null
+                && !LoadingActivity.cacheKelompokOnline.isEmpty()) {
+            masukModeOnline(savedInstanceState != null);
         } else {
-            siapkanSoal();
+            String pesan = LoadingActivity.pesanOffline.isEmpty()
+                    ? "Mode offline: memakai data bawaan."
+                    : LoadingActivity.pesanOffline;
+            masukModeOffline(pesan, savedInstanceState != null);
         }
-    }
-
-    // Disesuaikan dengan QuestionPool terbaru milik Jeremy
-    private void siapkanSoal() {
-        hentikanTimer();
-        if (pembentukSoal != null) pembentukSoal.batal();
-
-        textSkor.setVisibility(View.GONE);
-        textWaktu.setVisibility(View.GONE);
-        layoutOfflineBanner.setVisibility(View.GONE);
-        layoutGame.setVisibility(View.GONE);
-        radioGroupLevel.setVisibility(View.GONE);
-        tombolBerikutnya.setVisibility(View.GONE);
-        layoutLoadingAwal.setVisibility(View.VISIBLE);
-        textLoadingProgres.setText("Menyiapkan soal...\nNoun: 0/15 | Verb: 0/15 | Adj: 0/15");
-
-        List<String> kandidat = new ArrayList<>();
-        kandidat.addAll(kataEasy);
-        kandidat.addAll(kataMedium);
-        kandidat.addAll(kataDifficult);
-        Collections.shuffle(kandidat);
-
-        pembentukSoal = new QuestionPool();
-        pembentukSoal.build(kandidat, new QuestionPool.Listener() {
-            @Override
-            public void onProgress(Map<String, Integer> jumlahPerJenis) {
-                int n = jumlahPerJenis.getOrDefault("noun", 0);
-                int v = jumlahPerJenis.getOrDefault("verb", 0);
-                int a = jumlahPerJenis.getOrDefault("adjective", 0);
-                int target = QuestionPool.TARGET_PER_KELOMPOK;
-                textLoadingProgres.setText("Menyiapkan soal...\nNoun: " + n + "/" + target
-                        + " | Verb: " + v + "/" + target
-                        + " | Adj: " + a + "/" + target);
-            }
-
-            @Override
-            public void onSelesai(boolean berhasil, Map<String, List<QuestionWord>> kelompok, int jumlahRequest) {
-                layoutLoadingAwal.setVisibility(View.GONE);
-                textSkor.setVisibility(View.VISIBLE);
-                textWaktu.setVisibility(View.VISIBLE);
-                layoutGame.setVisibility(View.VISIBLE);
-                radioGroupLevel.setVisibility(View.VISIBLE);
-                tombolBerikutnya.setVisibility(View.VISIBLE);
-
-                // Bersihkan kelompok yang kosong (< 5 kata atau 0 kata)
-                //Map<String, List<QuestionWord>> kelompokValid = new HashMap<>();
-                //if (kelompok != null) {
-                    //for (Map.Entry<String, List<QuestionWord>> entry : kelompok.entrySet()) {
-                        //if (entry.getValue() != null && entry.getValue().size() >= 5) {
-                            //kelompokValid.put(entry.getKey(), entry.getValue());
-                        //}
-                    //}
-                //}
-
-                if (kelompok != null) {
-                    for (Map.Entry<String, List<QuestionWord>> e : kelompok.entrySet()) {
-                        Log.d("TES_KELOMPOK", e.getKey() + ": " + e.getValue().size() + " kata (request=" + jumlahRequest + ")");
-                        Log.d("TES_KELOMPOK", "berhasil: " + berhasil + ", request:" + jumlahRequest);
-                    }
-                }
-
-                if (berhasil && kelompok != null) {
-                    cacheKelompokOnline = kelompok;
-                    cacheModeOffline = false;
-                    masukModeOnline(false);
-                } else {
-                    cacheKelompokOnline = null;
-                    cacheModeOffline = true;
-                    masukModeOffline("Gagal memuat soal online. Memakai data bawaan.", false);
-                }
-            }
-        });
     }
 
     private void masukModeOnline(boolean dariRotasi) {
         modeOffline = false;
-        layoutLoadingAwal.setVisibility(View.GONE);
         layoutOfflineBanner.setVisibility(View.GONE);
         textSkor.setVisibility(View.VISIBLE);
         textWaktu.setVisibility(View.VISIBLE);
@@ -251,16 +175,22 @@ public class MainActivity extends AppCompatActivity {
         tombolBerikutnya.setVisibility(View.VISIBLE);
 
         radioEasy.setText("Noun");
-        radioEasy.setVisibility(View.VISIBLE);
+        radioEasy.setVisibility(LoadingActivity.cacheKelompokOnline.containsKey("noun") ? View.VISIBLE : View.GONE);
 
         radioMedium.setText("Verb");
-        radioMedium.setVisibility(View.VISIBLE);
+        radioMedium.setVisibility(LoadingActivity.cacheKelompokOnline.containsKey("verb") ? View.VISIBLE : View.GONE);
 
         radioDifficult.setText("Adjective");
-        radioDifficult.setVisibility(View.VISIBLE);
+        radioDifficult.setVisibility(LoadingActivity.cacheKelompokOnline.containsKey("adjective") ? View.VISIBLE : View.GONE);
 
         if (!dariRotasi) {
-            radioEasy.setChecked(true);
+            if (LoadingActivity.cacheKelompokOnline.containsKey("noun")) {
+                radioEasy.setChecked(true);
+            } else if (LoadingActivity.cacheKelompokOnline.containsKey("verb")) {
+                radioMedium.setChecked(true);
+            } else if (LoadingActivity.cacheKelompokOnline.containsKey("adjective")) {
+                radioDifficult.setChecked(true);
+            }
         }
 
         pilihLevel(radioGroupLevel.getCheckedRadioButtonId());
@@ -269,7 +199,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void masukModeOffline(String pesan, boolean dariRotasi) {
         modeOffline = true;
-        layoutLoadingAwal.setVisibility(View.GONE);
         layoutOfflineBanner.setVisibility(View.VISIBLE);
         textOfflineInfo.setText(pesan);
         panelPenjelasan.setVisibility(View.GONE);
@@ -307,12 +236,12 @@ public class MainActivity extends AppCompatActivity {
                 kamus = kamusDifficult;
                 kata = kataDifficult;
             }
-        } else if (cacheKelompokOnline != null) {
+        } else if (LoadingActivity.cacheKelompokOnline != null) {
             String jenis = "noun";
             if (checkedId == R.id.radioMedium) jenis = "verb";
             else if (checkedId == R.id.radioDifficult) jenis = "adjective";
 
-            List<QuestionWord> daftar = cacheKelompokOnline.get(jenis);
+            List<QuestionWord> daftar = LoadingActivity.cacheKelompokOnline.get(jenis);
             kamus = new HashMap<>();
             kata = new ArrayList<>();
             infoSoalOnline = new HashMap<>();
@@ -363,6 +292,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void letsPlay() {
+        if (kata == null || kata.isEmpty()) {
+            hentikanTimer();
+            textSoal.setText("-");
+            textHasil.setText("Kategori ini belum punya kata. Pilih kategori lain");
+            adapter.setOpsi(new ArrayList<>(), -1);
+            return;
+        }
+
         if (soalKe < JUMLAH_SOAL) {
             sudahDijawab = false;
             opsiJawaban = new ArrayList<>();
@@ -390,14 +327,6 @@ public class MainActivity extends AppCompatActivity {
             mulaiTimer(sisaMs);
         } else {
             selesaiSesi();
-        }
-
-        if (kata == null || kata.isEmpty()) {
-            hentikanTimer();
-            textSoal.setText("-");
-            textHasil.setText("Kategori ini belum punya kata. Pilih kategori lain");
-            adapter.setOpsi(new ArrayList<>(), -1);
-            return;
         }
     }
 
@@ -523,7 +452,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (pembentukSoal != null) pembentukSoal.batal();
     }
 
     @Override

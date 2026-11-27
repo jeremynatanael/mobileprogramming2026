@@ -89,32 +89,6 @@
 
     </RadioGroup>
 
-    <!-- Layar Loading Persiapan Soal -->
-    <LinearLayout
-        android:id="@+id/layoutLoadingAwal"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@id/tombolBerikutnya"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/radioGroupLevel">
-
-        <ProgressBar
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-        <TextView
-            android:id="@+id/textLoadingProgres"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="Menyiapkan soal 0/40"
-            android:textSize="15sp" />
-    </LinearLayout>
-
     <!-- Container Permainan Utama -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layoutGame"
