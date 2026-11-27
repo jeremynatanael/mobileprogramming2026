@@ -333,19 +333,17 @@ public class MainActivity extends AppCompatActivity {
         kandidat.addAll(kataMedium);
         kandidat.addAll(kataDifficult);
         Collections.shuffle(kandidat);
-        List<String> terpilih = new ArrayList<>(kandidat.subList(0, Math.min(40, kandidat.size())));
 
         pembentukSoal = new QuestionPool();
-        pembentukSoal.build(terpilih, new QuestionPool.Listener() {
+        pembentukSoal.build(kandidat, new QuestionPool.Listener() {
             @Override
-            public void onProgress(int ke, int total) {
-                Log.d("TES_KELOMPOK", "Progres " + ke + "/" + total);
+            public void onProgress(Map<String, Integer> jumlah) {
+                Log.d("TES_KELOMPOK", "Progres " + jumlah);
             }
 
             @Override
-            public void onSelesai(boolean berhasil, List<WordEntry> valid) {
-                Log.d("TES_KELOMPOK", "berhasil=" + berhasil + ", entry valid=" + valid.size());
-                Map<String, List<QuestionWord>> kelompok = WordGrouper.kelompokkan(valid);
+            public void onSelesai(boolean berhasil, Map<String, List<QuestionWord>> kelompok, int jumlahRequest) {
+                Log.d("TES_KELOMPOK", "berhasil=" + berhasil + ", request=" + jumlahRequest);
                 for (Map.Entry<String, List<QuestionWord>> e : kelompok.entrySet()) {
                     Log.d("TES_KELOMPOK", e.getKey() + ": " + e.getValue().size() + " kata");
                 }
